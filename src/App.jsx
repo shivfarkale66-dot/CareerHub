@@ -2,8 +2,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Authentication & Protected Routes
-// import ProtectedRoute from "./ProtectedRoute.jsx";
-
 import ProtectedRoute from "./Protectedroute.jsx";
 
 // Public Pages
@@ -33,10 +31,7 @@ import InterviewCall from "./InterviewCall.jsx";
 import AdminDashboard from "./AdminDashboard.jsx";
 import AdminJobs from "./admin/AdminJobs.jsx";
 import AdminApplications from "./admin/AdminApplications.jsx";
-// import LiveInterviews from "./admin/Liveinterviews.jsx";
 import LiveInterviews from "./admin/LiveInterviews.jsx";
-
-/// heellow 
 
 export default function App() {
   return (
@@ -45,11 +40,8 @@ export default function App() {
       {/* PUBLIC ROUTES */}
 
       <Route path="/" element={<Home />} />
-
       <Route path="/login" element={<Login />} />
-
       <Route path="/signup" element={<SignUp />} />
-
       <Route path="/jobs" element={<JobListing />} />
 
       <Route path="/companies" element={<Companies />} />
@@ -60,11 +52,8 @@ export default function App() {
       />
 
       <Route path="/help" element={<HelpFAQ />} />
-
       <Route path="/about" element={<AboutUs />} />
-
       <Route path="/contact" element={<ContactUs />} />
-
 
       {/* USER PROTECTED ROUTES */}
 
@@ -131,7 +120,6 @@ export default function App() {
         }
       />
 
-
       {/* INTERVIEW CALL - USER AND ADMIN */}
 
       <Route
@@ -151,7 +139,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
 
       {/* ADMIN PROTECTED ROUTES */}
 
@@ -190,7 +177,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
 
       {/* UNKNOWN ROUTES */}
 
