@@ -33,7 +33,8 @@ import InterviewCall from "./InterviewCall.jsx";
 import AdminDashboard from "./AdminDashboard.jsx";
 import AdminJobs from "./admin/AdminJobs.jsx";
 import AdminApplications from "./admin/AdminApplications.jsx";
-import LiveInterviews from "./LiveInterviews.jsx";
+// import LiveInterviews from "./admin/Liveinterviews.jsx";
+import LiveInterviews from "./admin/LiveInterviews.jsx";
 
 /// heellow 
 
