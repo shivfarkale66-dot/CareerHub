@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { authFetch } from "../api.js";
+import { authFetch } from "../Api.js";
 
 const STATUSES = [
   "Applied",

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
+import { API_BASE } from "./Config.js";
 
 // Backend signup endpoint (change the port if your backend runs elsewhere)
-const API_URL = "http://localhost:8081/api/auth/signup";
+const API_URL = `${API_BASE}/api/auth/signup`;
 
 // Shared style for orange buttons
 const orange = "bg-[#FF8A00] text-white font-semibold";
@@ -72,8 +73,8 @@ export default function SignUp() {
         return;
       }
 
-      // Go to the Login page after signup
-      navigate("/login", { state: { registered: true } });
+      // The backend emailed a 6-digit code: ask for it before the first login
+      navigate("/verify-email", { state: { email: data.email || form.email.trim().toLowerCase() } });
     } catch (err) {
       console.error("Signup error:", err);
       setError("Cannot reach the server. Is the backend running?");

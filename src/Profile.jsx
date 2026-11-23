@@ -1,5 +1,3 @@
-
-
 import { useEffect, useRef, useState } from "react";
 
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -8,7 +6,7 @@ import Navbar from "./Navbar.jsx";
 
 import Footer from "./Footer.jsx";
 
-import { authFetch } from "./api.js";
+import { authFetch } from "./Api.js";
 
 import { getApplications, getSavedJobs } from "./Storage.js";
 
@@ -890,7 +888,7 @@ export default function Profile() {
 
     localStorage.removeItem("loggedInUser");
 
-    localStorage.removeItem("token");
+    localStorage.removeItem("token"); localStorage.removeItem("applications"); localStorage.removeItem("savedJobs");
 
     window.dispatchEvent(new Event("auth-change"));
 
@@ -933,6 +931,8 @@ export default function Profile() {
     { label: "Interviews", to: "/dashboard?tab=interviews", icon: icons.calendar, badge: stats[1].value },
 
     { label: "Saved Jobs", to: "/dashboard?tab=saved", icon: icons.bookmark, badge: stats[2].value },
+
+    { label: "Messages", to: "/messages", icon: icons.mail },
 
     { label: "Contact Us", to: "/contact", icon: icons.mail },
 

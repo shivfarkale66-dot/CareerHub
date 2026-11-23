@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_BASE } from "./Config.js";
 
-const API = "http://localhost:8081/api/auth";
+const API = `${API_BASE}/api/auth`;
+const RESEND_SECONDS = 60; // backend also blocks resend within 60 seconds
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -13,9 +15,16 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  // countdown for the resend button
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   async function post(path, payload) {
-    console.log("POST", path, payload); // debugging ke liye, baad mein hata dena
     const res = await fetch(`${API}/${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -32,15 +41,11 @@ export default function ForgotPassword() {
     return data;
   }
 
-  async function handleSendCode(e) {
-    e.preventDefault();
-    setError("");
-    setInfo("");
-
+  async function sendCode() {
     const cleanEmail = email.trim();
     if (!cleanEmail) {
       setError("Email is required");
-      return;
+      return false;
     }
 
     setLoading(true);
@@ -51,12 +56,28 @@ export default function ForgotPassword() {
         gmail: cleanEmail,
       });
       setInfo(data.message || "Code sent");
-      setStep(2);
+      setCooldown(RESEND_SECONDS);
+      return true;
     } catch (err) {
       setError(err.message);
+      return false;
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSendCode(e) {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    const ok = await sendCode();
+    if (ok) setStep(2);
+  }
+
+  async function handleResend() {
+    setError("");
+    setInfo("");
+    await sendCode();
   }
 
   async function handleReset(e) {
@@ -66,6 +87,10 @@ export default function ForgotPassword() {
 
     if (!code.trim() || !password) {
       setError("All fields are required");
+      return;
+    }
+    if (code.trim().length !== 6) {
+      setError("Code must be 6 digits");
       return;
     }
     if (password.length < 8) {
@@ -82,7 +107,9 @@ export default function ForgotPassword() {
         password,
         newPassword: password,
       });
-      navigate("/login");
+      navigate("/login", {
+        state: { msg: "Password updated. Please login with your new password." },
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -139,7 +166,7 @@ export default function ForgotPassword() {
               maxLength={6}
               className={inputClass}
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
               placeholder="123456"
             />
 
@@ -162,6 +189,15 @@ export default function ForgotPassword() {
 
             <button
               type="button"
+              className="w-full text-sm text-orange-600 underline disabled:text-gray-400 disabled:no-underline"
+              onClick={handleResend}
+              disabled={loading || cooldown > 0}
+            >
+              {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+            </button>
+
+            <button
+              type="button"
               className="w-full text-sm text-gray-500 underline"
               onClick={() => {
                 setStep(1);
@@ -169,6 +205,7 @@ export default function ForgotPassword() {
                 setPassword("");
                 setError("");
                 setInfo("");
+                setCooldown(0);
               }}
             >
               Use a different email

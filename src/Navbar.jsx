@@ -58,6 +58,8 @@ const adminMenu = [
   ["Live", "/admin/live"],
   ["Applications", "/admin/applications"],
   ["Jobs", "/admin/jobs"],
+  ["Messages", "/admin/messages"],
+  ["Contact", "/admin/contact"],
 ];
 
 // Routes that should highlight a menu item
@@ -81,7 +83,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false); // phone menu
 
   const isAdmin = user?.role === "ADMIN";
-  const menu = isAdmin ? adminMenu : publicMenu;
+  const menu = isAdmin ? adminMenu : user ? [...publicMenu, ["Messages", "/messages"]] : publicMenu;
   const initial = (user?.fullName || user?.name || "U").trim().charAt(0).toUpperCase();
 
   // Login/logout ke baad navbar apne aap update ho
@@ -103,7 +105,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
-    localStorage.removeItem("token");
+    localStorage.removeItem("token"); localStorage.removeItem("applications"); localStorage.removeItem("savedJobs");
     window.dispatchEvent(new Event("auth-change"));
     setUser(null);
     setOpen(false);

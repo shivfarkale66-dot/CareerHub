@@ -8,7 +8,7 @@ import {
   getTimes,
   isUpcomingState,
   timeUntil,
-} from "./interviewUtils.js";
+} from "./InterviewUtils.js";
 
 const typeLabel = { VIDEO: "Video", AUDIO: "Audio" };
 

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authFetch } from "./api.js";
+import { authFetch } from "./Api.js";
 
 export default function NotificationBell() {
   const navigate = useNavigate();
@@ -11,7 +11,11 @@ export default function NotificationBell() {
   const load = async () => {
     try {
       const res = await authFetch("/api/notifications/my");
-      if (res.ok) setItems(await res.json());
+      // if (res.ok) setItems(await res.json());
+      if (res.ok) {
+      const list = await res.json();
+     setItems(Array.isArray(list) ? list : []);
+        }
     } catch {
       setItems([]);
     }

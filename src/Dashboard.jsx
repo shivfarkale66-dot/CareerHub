@@ -11,7 +11,7 @@ import {
 import useMyInterviews from "./useMyInterviews.js";
 import InterviewSection from "./InterviewSection.jsx";
 import UpcomingInterviewBanner from "./UpcomingInterviewBanner.jsx";
-import { getState, isUpcomingState } from "./interviewUtils.js";
+import { getState, isUpcomingState } from "./InterviewUtils.js";
 
 const STATUS_STYLES = {
   Applied: "bg-blue-100 text-blue-700 border-blue-200",

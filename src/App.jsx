@@ -1,13 +1,16 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Authentication & Protected Routes
-import ProtectedRoute from "./Protectedroute.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
 // Public Pages
 import Home from "./Home.jsx";
 import Login from "./Login.jsx";
 import SignUp from "./SignUp.jsx";
+import ForgotPassword from "./ForgotPassword.jsx";
+import VerifyEmail from "./VerifyEmail.jsx";
+import PrivacyPolicy from "./PrivacyPolicy.jsx";
+import TermsOfUse from "./TermsOfUse.jsx";
 import JobListing from "./JobListing.jsx";
 import Companies from "./Companies.jsx";
 import CompanyDetails from "./CompanyDetails.jsx";
@@ -23,6 +26,7 @@ import Notifications from "./Notifications.jsx";
 import Profile from "./Profile.jsx";
 import Settings from "./Settings.jsx";
 import MyInterviews from "./MyInterviews.jsx";
+import LegalPage from "./LegalPage.jsx";
 
 // Interview Call
 import InterviewCall from "./InterviewCall.jsx";
@@ -32,6 +36,8 @@ import AdminDashboard from "./AdminDashboard.jsx";
 import AdminJobs from "./admin/AdminJobs.jsx";
 import AdminApplications from "./admin/AdminApplications.jsx";
 import LiveInterviews from "./admin/LiveInterviews.jsx";
+import AdminContact from "./admin/AdminContact.jsx";
+import AdminMessages from "./admin/AdminMessages.jsx";
 
 export default function App() {
   return (
@@ -42,6 +48,10 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/jobs" element={<JobListing />} />
 
       <Route path="/companies" element={<Companies />} />
@@ -174,6 +184,24 @@ export default function App() {
         element={
           <ProtectedRoute role="ADMIN">
             <LiveInterviews />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/contact"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminContact />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/messages"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminMessages />
           </ProtectedRoute>
         }
       />

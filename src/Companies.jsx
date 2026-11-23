@@ -1,8 +1,10 @@
 // Put this file in: src/Companies.jsx   (replace the whole file)
 // Same light-blue design as the new JobListing page: banner, search bar, filter sidebar,
 // sortable company cards (grid / list), Follow button and pagination.
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { API_BASE } from "./Config.js";
+import { authFetch } from "./Authfetch.js";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
 
@@ -10,16 +12,37 @@ const navy = "text-[#0B1B4D]";
 const blueBtn = "bg-[#0F5CFF] text-white font-semibold";
 const PER_PAGE = 6;
 
-// Company list (same companies as on the Job pages).
-// employees = headcount used for the size filter, tags = small chips on the card.
-const companies = [
-  { name: "Pixel Studio", industry: "Design", city: "Bhopal", jobs: 12, employees: 45, color: "bg-emerald-500", tagline: "Design that people remember", tags: ["Design", "Apps", "Branding"], about: "A creative studio building apps, brands and websites." },
-  { name: "TechNova", industry: "IT & Software", city: "Indore", jobs: 28, employees: 320, color: "bg-[#0F5CFF]", tagline: "Software built to scale", tags: ["Software", "Web", "Mobile"], about: "Software company working on web and mobile products." },
-  { name: "BrandLoop", industry: "Marketing", city: "Remote", jobs: 9, employees: 60, color: "bg-violet-500", tagline: "Grow your brand online", tags: ["Marketing", "SEO", "Social"], about: "Digital marketing agency helping brands grow online." },
-  { name: "PeopleFirst", industry: "Human Resource", city: "Mumbai", jobs: 15, employees: 1200, color: "bg-sky-500", tagline: "People come first", tags: ["HR", "Hiring", "Payroll"], about: "Hiring and HR services for growing companies." },
-  { name: "InsightIQ", industry: "Data & Analytics", city: "Pune", jobs: 11, employees: 150, color: "bg-red-500", tagline: "Data into decisions", tags: ["Data", "Reports", "AI"], about: "Turns business data into clear reports and insights." },
-  { name: "WordCraft", industry: "Content & Media", city: "Remote", jobs: 7, employees: 25, color: "bg-teal-500", tagline: "Words that work", tags: ["Content", "Blogs", "Media"], about: "Content team for blogs, websites and social media." },
+// Round logo colours (full class names so Tailwind can see them)
+const COLORS = [
+  "bg-emerald-500", "bg-[#0F5CFF]", "bg-violet-500", "bg-sky-500", "bg-red-500",
+  "bg-teal-500", "bg-pink-500", "bg-indigo-500", "bg-rose-500", "bg-orange-500",
 ];
+
+// "201-500 employees" -> 500, "1000+ employees" -> 1001 (used by the size filter)
+function sizeNumber(text) {
+  const nums = String(text || "").match(/\d+/g);
+  if (!nums) return 0;
+  const last = Number(nums[nums.length - 1]);
+  return /\+/.test(text) ? last + 1 : last;
+}
+
+// A company from the backend (GET /api/companies) -> what the cards need
+function toCard(c) {
+  const about = c.about || "";
+  return {
+    id: c.id,
+    name: c.name,
+    industry: c.industry || "Other",
+    city: c.city,
+    jobs: c.openJobs ?? 0,
+    employees: sizeNumber(c.size),
+    sizeText: c.size || "",
+    color: COLORS[c.id % COLORS.length],
+    tagline: about.split(". ")[0] || "",
+    tags: [c.industry, c.area].filter(Boolean),
+    about,
+  };
+}
 
 const sizeOptions = [
   { label: "1–50 Employees", test: (n) => n <= 50 },
@@ -32,21 +55,11 @@ const sortOptions = [
   { value: "name", label: "Name (A–Z)" },
 ];
 
-// Filter options come from the list above
-const industries = [...new Set(companies.map((c) => c.industry))];
-const locations = [...new Set(companies.map((c) => c.city))];
-
 const animations = `
   @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .card-in { animation: cardIn 0.35s ease both; }
   @media (prefers-reduced-motion: reduce) { .card-in { animation: none; } }
 `;
-
-// "1200" -> "1K+ Employees"
-function employeesText(n) {
-  if (n >= 1000) return `${Math.floor(n / 1000)}K+ Employees`;
-  return `${n}+ Employees`;
-}
 
 function VerifiedIcon() {
   return (
@@ -71,23 +84,50 @@ function FilterGroup({ title, options, selected, onToggle }) {
   );
 }
 
-// Names of companies the user follows are kept in the browser
-const FOLLOW_KEY = "followedCompanies";
-function loadFollowed() {
-  try {
-    return JSON.parse(localStorage.getItem(FOLLOW_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
 export default function Companies() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ industry: [], size: [], location: [] });
   const [sort, setSort] = useState("popular");
   const [view, setView] = useState("grid"); // "grid" | "list"
   const [page, setPage] = useState(1);
-  const [followed, setFollowed] = useState(loadFollowed);
+  const navigate = useNavigate();
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [followed, setFollowed] = useState([]); // ids of the companies this user follows (from the database)
+  const loggedIn = !!localStorage.getItem("token");
+
+  // Companies come from the database
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API_BASE}/api/companies`)
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((list) => alive && setCompanies(list.map(toCard)))
+      .catch(() => alive && setLoadError("Could not load companies. Please try again later."))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // The companies this user follows
+  useEffect(() => {
+    if (!loggedIn) return;
+    let alive = true;
+    authFetch("/api/follows")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((ids) => alive && Array.isArray(ids) && setFollowed(ids))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [loggedIn]);
+
+  const industries = useMemo(() => [...new Set(companies.map((c) => c.industry))].sort(), [companies]);
+  const locations = useMemo(() => [...new Set(companies.map((c) => c.city))].sort(), [companies]);
 
   const toggle = (group, value) => {
     setFilters((f) => ({
@@ -103,14 +143,18 @@ export default function Companies() {
     setPage(1);
   };
 
-  const toggleFollow = (name) => {
-    const next = followed.includes(name) ? followed.filter((n) => n !== name) : [...followed, name];
-    setFollowed(next);
-    try {
-      localStorage.setItem(FOLLOW_KEY, JSON.stringify(next));
-    } catch {
-      /* storage not available: the button still works for this visit */
+  const toggleFollow = (id) => {
+    if (!loggedIn) {
+      navigate("/login", { state: { from: { pathname: "/companies" } } });
+      return;
     }
+    const was = followed.includes(id);
+    setFollowed(was ? followed.filter((x) => x !== id) : [...followed, id]); // the button reacts at once
+    authFetch(`/api/follows/${id}`, { method: was ? "DELETE" : "PUT" })
+      .then((r) => {
+        if (!r.ok) throw new Error();
+      })
+      .catch(() => setFollowed(followed)); // the server said no: put it back
   };
 
   // Match the typed text (name, industry or city) and every filter group that has something selected
@@ -228,7 +272,10 @@ export default function Companies() {
                 </div>
               </div>
 
-              {visible.length === 0 && (
+              {loading && <p className="text-slate-600">Loading companies...</p>}
+              {loadError && <p className="text-red-600">{loadError}</p>}
+
+              {!loading && !loadError && visible.length === 0 && (
                 <div className="bg-white border border-[#E1E9FA] rounded-2xl p-10 text-center">
                   <p className="text-slate-600">No companies found. Try removing a filter.</p>
                   <button onClick={clearAll} className={`${blueBtn} px-6 py-2 rounded-lg mt-4 transition hover:brightness-110 active:scale-95`}>
@@ -243,10 +290,10 @@ export default function Companies() {
                 className={isGrid ? "grid sm:grid-cols-2 xl:grid-cols-3 gap-4" : "space-y-4"}
               >
                 {pageItems.map((c, i) => {
-                  const isFollowed = followed.includes(c.name);
+                  const isFollowed = followed.includes(c.id);
                   return (
                     <article
-                      key={c.name}
+                      key={c.id}
                       style={{ animationDelay: `${i * 40}ms` }}
                       className={`card-in bg-white border border-[#E1E9FA] rounded-2xl p-5 flex gap-4 transition hover:border-[#0F5CFF]/40 hover:shadow-[0_8px_28px_rgba(15,92,255,0.10)] ${
                         isGrid ? "flex-col" : "flex-col sm:flex-row sm:items-center"
@@ -265,7 +312,7 @@ export default function Companies() {
                           </h3>
                           <p className="text-sm text-slate-700 mt-0.5">{c.tagline}</p>
                           <p className="text-xs text-slate-500 mt-2">
-                            {employeesText(c.employees)} • {c.city}
+                            {c.sizeText ? `${c.sizeText} • ` : ""}{c.city}
                           </p>
                           <div className="flex flex-wrap gap-2 mt-3">
                             {c.tags.map((t) => (
@@ -278,13 +325,13 @@ export default function Companies() {
                       <div className={`flex items-center justify-between gap-3 ${isGrid ? "" : "sm:flex-col sm:items-end"}`}>
                         {/* Opens the Job Search page filtered by this company */}
                         <Link
-                          to={`/search?keyword=${encodeURIComponent(c.name)}`}
+                          to={`/companies/${c.id}`}
                           className="text-sm font-semibold text-[#0F5CFF] hover:underline"
                         >
                           View {c.jobs} jobs →
                         </Link>
                         <button
-                          onClick={() => toggleFollow(c.name)}
+                          onClick={() => toggleFollow(c.id)}
                           aria-pressed={isFollowed}
                           className={`h-10 px-5 rounded-lg border font-semibold text-sm transition active:scale-95 ${
                             isFollowed

@@ -8,46 +8,33 @@ import {
   FaLinkedin, FaInstagram, FaYoutube, FaFacebook,
   FaCode, FaBullhorn, FaPaintBrush, FaChartBar, FaWallet,
   FaSearch, FaPaperPlane, FaComments, FaTrophy, FaRocket,
-  FaStar, FaMapMarkerAlt, FaArrowRight,
+  FaMapMarkerAlt, FaArrowRight,
 } from "react-icons/fa";
 
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import SocialSidebar from "./Animation/SocialSidebar";
+import useJobs from "./Usejobs.js";
+import { API_BASE } from "./Config.js";
 
 // Hero photo: put your image in the "public" folder with this name (transparent PNG looks best).
 // If the file is missing, the hero simply shows without it.
 const HERO_IMG = "/hero-person.png";
 
-// "cat" is the category name used by the Jobs page filter
+// "cat" is the category name used by the Jobs page filter. The job counts come from the database.
 const categories = [
-  { title: "IT & Software", cat: "Development", count: "2,150+ Jobs", icon: <FaCode /> },
-  { title: "Marketing", cat: "Marketing", count: "1,230+ Jobs", icon: <FaBullhorn /> },
-  { title: "Design", cat: "Design", count: "820+ Jobs", icon: <FaPaintBrush /> },
-  { title: "Data Science", cat: "Data", count: "640+ Jobs", icon: <FaChartBar /> },
-  { title: "Finance", cat: "Finance", count: "780+ Jobs", icon: <FaWallet /> },
+  { title: "IT & Software", cat: "Development", icon: <FaCode /> },
+  { title: "Marketing", cat: "Marketing", icon: <FaBullhorn /> },
+  { title: "Design", cat: "Design", icon: <FaPaintBrush /> },
+  { title: "Data Science", cat: "Data", icon: <FaChartBar /> },
+  { title: "Finance", cat: "Finance", icon: <FaWallet /> },
 ];
-
-const featuredJobs = [
-  { company: "Google", role: "Software Engineer", city: "Bengaluru, India", pay: "₹15 – ₹25L / year", type: "Remote", color: "bg-blue-600" },
-  { company: "Microsoft", role: "Full Stack Developer", city: "Hyderabad, India", pay: "₹10 – ₹18L / year", type: "Hybrid", color: "bg-emerald-600" },
-  { company: "TCS", role: "Java Developer", city: "Mumbai, India", pay: "₹6 – ₹10L / year", type: "On-site", color: "bg-indigo-600" },
-  { company: "Amazon", role: "Frontend Developer", city: "Pune, India", pay: "₹8 – ₹14L / year", type: "Work From Home", color: "bg-orange-500" },
-];
-
-const topCompanies = ["Google", "Microsoft", "Amazon", "Meta", "TCS", "Infosys", "Deloitte", "Accenture"];
 
 const steps = [
   { title: "Search Jobs", text: "Find the best jobs matching your skills.", icon: <FaSearch /> },
   { title: "Apply Online", text: "Submit your application in just one click.", icon: <FaPaperPlane /> },
   { title: "Attend Interview", text: "Showcase your skills in interviews.", icon: <FaComments /> },
   { title: "Get Hired", text: "Start your dream career!", icon: <FaTrophy /> },
-];
-
-const testimonials = [
-  { text: "CareerHub helped me find the right job within just two weeks!", name: "Rahul Sharma", role: "React Developer, Google" },
-  { text: "The clean UI and fast application process made my job search much easier.", name: "Priya Mehta", role: "UI Designer, Microsoft" },
-  { text: "CareerHub is an excellent job portal, especially for freshers.", name: "Aman Verma", role: "Java Developer, TCS" },
 ];
 
 // login hai ya nahi (localStorage "loggedInUser")
@@ -70,8 +57,6 @@ function useLoggedIn() {
   return loggedIn;
 }
 
-const initials = (name) => name.split(" ").map((w) => w[0]).join("").slice(0, 2);
-
 function SectionHead({ title, to = "/jobs", link = "View All" }) {
   return (
     <div className="flex items-center justify-between mb-5">
@@ -91,6 +76,25 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [place, setPlace] = useState("");
   const [heroOk, setHeroOk] = useState(true);
+
+  // Everything below comes from the database: open jobs, and the companies with the most open jobs
+  const { jobs, loading: jobsLoading } = useJobs();
+  const [companies, setCompanies] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API_BASE}/api/companies`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => alive && Array.isArray(list) && setCompanies(list))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const openJobs = jobs.filter((j) => j.active !== false);
+  const featuredJobs = openJobs.slice(0, 4); // newest first
+  const countOf = (cat) => openJobs.filter((j) => (j.category || "").toLowerCase() === cat.toLowerCase()).length;
+  const topCompanies = [...companies].sort((a, b) => (b.openJobs ?? 0) - (a.openJobs ?? 0)).slice(0, 8);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -169,27 +173,32 @@ export default function Home() {
                 <Link key={c.title} to={`/jobs?category=${encodeURIComponent(c.cat)}`} className="bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition">
                   <span className="mx-auto mb-3 grid place-items-center w-11 h-11 rounded-lg bg-blue-50 text-[#2563EB] text-lg">{c.icon}</span>
                   <p className="font-semibold text-sm text-slate-900">{c.title}</p>
-                  <p className="text-xs text-slate-500 mt-1">{c.count}</p>
+                  <p className="text-xs text-slate-500 mt-1">{jobsLoading ? "..." : `${countOf(c.cat)} ${countOf(c.cat) === 1 ? "Job" : "Jobs"}`}</p>
                 </Link>
               ))}
             </div>
           </section>
 
-          {/* FEATURED JOBS */}
+          {/* FEATURED JOBS (the newest open jobs) */}
           <section>
             <SectionHead title="Featured Jobs" link="View All Jobs" />
+            {!jobsLoading && featuredJobs.length === 0 && (
+              <p className="bg-white border border-slate-200 rounded-xl p-6 text-sm text-slate-500">
+                No jobs have been posted yet. Please check again soon.
+              </p>
+            )}
             <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
               {featuredJobs.map((j) => (
-                <div key={j.company} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div key={j.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                   <div className="flex items-start justify-between">
-                    <span className={`grid place-items-center w-10 h-10 rounded-lg text-white font-bold ${j.color}`}>{j.company[0]}</span>
-                    <span className="text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-600 px-2 py-0.5">{j.type}</span>
+                    <span className={`grid place-items-center w-10 h-10 rounded-lg text-white font-bold ${j.color}`}>{(j.company || "?")[0]}</span>
+                    <span className="text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-600 px-2 py-0.5">{j.workMode || j.type}</span>
                   </div>
-                  <h3 className="mt-3 font-bold text-slate-900">{j.role}</h3>
+                  <h3 className="mt-3 font-bold text-slate-900">{j.title}</h3>
                   <p className="text-sm text-slate-600">{j.company}</p>
-                  <p className="mt-2 text-xs text-slate-500 flex items-center gap-1"><FaMapMarkerAlt />{j.city}</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-800">{j.pay}</p>
-                  <Link to="/jobs" className="mt-4 block text-center rounded-lg bg-[#2563EB] text-white text-sm font-semibold py-2 hover:bg-blue-700 transition">
+                  <p className="mt-2 text-xs text-slate-500 flex items-center gap-1"><FaMapMarkerAlt />{j.location}</p>
+                  {j.pay && <p className="mt-1 text-sm font-semibold text-slate-800">{j.pay}</p>}
+                  <Link to={`/apply/${j.id}`} className="mt-4 block text-center rounded-lg bg-[#2563EB] text-white text-sm font-semibold py-2 hover:bg-blue-700 transition">
                     Apply Now
                   </Link>
                 </div>
@@ -197,15 +206,17 @@ export default function Home() {
             </div>
           </section>
 
-          {/* TOP COMPANIES */}
-          <section>
-            <SectionHead title="Top Companies" to="/companies" link="View All Companies" />
-            <div className="bg-white border border-slate-200 rounded-xl px-6 py-5 flex flex-wrap items-center justify-around gap-x-8 gap-y-3">
-              {topCompanies.map((c) => (
-                <Link key={c} to="/companies" className="text-lg font-bold text-slate-500 hover:text-[#2563EB] transition">{c}</Link>
-              ))}
-            </div>
-          </section>
+          {/* TOP COMPANIES (most open jobs) */}
+          {topCompanies.length > 0 && (
+            <section>
+              <SectionHead title="Top Companies" to="/companies" link="View All Companies" />
+              <div className="bg-white border border-slate-200 rounded-xl px-6 py-5 flex flex-wrap items-center justify-around gap-x-8 gap-y-3">
+                {topCompanies.map((c) => (
+                  <Link key={c.id} to={`/companies/${c.id}`} className="text-lg font-bold text-slate-500 hover:text-[#2563EB] transition">{c.name}</Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* HOW IT WORKS */}
           <section>
@@ -219,26 +230,6 @@ export default function Home() {
                     <p className="text-xs text-slate-500 mt-1">{s.text}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* TESTIMONIALS */}
-          <section>
-            <SectionHead title="What Our Users Say" link="" />
-            <div className="grid md:grid-cols-3 gap-4">
-              {testimonials.map((t) => (
-                <figure key={t.name} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                  <div className="flex gap-0.5 text-amber-400 text-sm">{[...Array(5)].map((_, i) => <FaStar key={i} />)}</div>
-                  <blockquote className="mt-3 text-sm text-slate-700">{t.text}</blockquote>
-                  <figcaption className="mt-4 flex items-center gap-3">
-                    <span className="grid place-items-center w-10 h-10 rounded-full bg-blue-100 text-[#2563EB] font-bold text-sm">{initials(t.name)}</span>
-                    <span>
-                      <span className="block text-sm font-semibold text-slate-900">{t.name}</span>
-                      <span className="block text-xs text-slate-500">{t.role}</span>
-                    </span>
-                  </figcaption>
-                </figure>
               ))}
             </div>
           </section>

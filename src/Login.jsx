@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
+// import { API_BASE } from "./Companies.jsx";
+import { API_BASE } from "./Config.js";
+import { syncFromServer } from "./Storage.js";
 
 // Dev: empty base, so requests go through the Vite proxy (/api -> localhost:8081)
 // Production: set VITE_API_URL in .env.production
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 const API_URL = `${API_BASE}/api/auth/login`;
 
 // Shared style for orange buttons
@@ -52,6 +55,12 @@ export default function Login() {
         data = { message: text };
       }
 
+      // The account exists but the email is not verified yet: go to the code page
+      if (res.status === 403 && data.needsVerification) {
+        navigate("/verify-email", { state: { email: data.email || form.email, resend: true } });
+        return;
+      }
+
       if (!res.ok) {
         setError(
           data.message ||
@@ -85,6 +94,7 @@ export default function Login() {
       window.dispatchEvent(new Event("auth-change")); // update the navbar right away
 
       // Admins go to their dashboard, normal users go back where they were
+      if (role !== "ADMIN") syncFromServer(); // fills the applications / saved jobs from the database
       navigate(role === "ADMIN" ? "/admin" : from, { replace: true });
     } catch (err) {
       console.error("Login error:", err);
@@ -151,6 +161,12 @@ export default function Login() {
               placeholder="••••••••"
               className="w-full h-14 px-5 border border-[#E5E7EB] rounded-lg outline-none focus:border-[#FF8A00]"
             />
+
+            <div className="mt-3 text-right">
+              <Link to="/forgot-password" className="text-sm font-semibold text-[#FF8A00] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
 
             {/* Error message */}
             {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
