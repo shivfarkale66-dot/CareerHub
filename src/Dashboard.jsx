@@ -8,7 +8,7 @@ import {
   getSavedJobs,
   removeSavedJob,
 } from "./Storage";
-import useMyInterviews from "./useMyInterviews.js";
+import useMyInterviews from "./UseMyInterviews.js";
 import InterviewSection from "./InterviewSection.jsx";
 import UpcomingInterviewBanner from "./UpcomingInterviewBanner.jsx";
 import { getState, isUpcomingState } from "./InterviewUtils.js";

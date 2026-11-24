@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Modal, { inputCls, labelCls } from "./Modal.jsx";
-import { authJson } from "../authFetch.js";
+import { authJson } from "../Authfetch.js";
 
 const pad = (n) => String(n).padStart(2, "0");
 const todayStr = () => {

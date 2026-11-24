@@ -14,7 +14,7 @@ import {
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import SocialSidebar from "./Animation/SocialSidebar";
-import useJobs from "./Usejobs.js";
+import useJobs from "./UseJobs.js";
 import { API_BASE } from "./Config.js";
 
 // Hero photo: put your image in the "public" folder with this name (transparent PNG looks best).

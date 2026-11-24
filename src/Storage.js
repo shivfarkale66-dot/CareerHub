@@ -1,8 +1,10 @@
 
 
-// Backend URL. For hosting set VITE_API_URL (example: https://your-backend.com)
-const API_BASE =
-  ((import.meta.env && import.meta.env.VITE_API_URL) || "http://localhost:8081") + "/api";
+// // Backend URL. For hosting set VITE_API_URL (example: https://your-backend.com)
+// const API_BASE =
+//   ((import.meta.env && import.meta.env.VITE_API_URL) || "http://localhost:8081") + "/api";
+import { API_BASE as BACKEND } from "./Config.js";
+const API_BASE = BACKEND + "/api";
 
 const read = (key, fallback) => {
   try {

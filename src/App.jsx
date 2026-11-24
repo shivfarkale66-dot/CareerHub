@@ -1,7 +1,9 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 // Authentication & Protected Routes
 import ProtectedRoute from "./ProtectedRoute.jsx";
+import ScrollToTop from "./ScrollToTop.jsx";
+import NotFound from "./NotFound.jsx";
 
 // Public Pages
 import Home from "./Home.jsx";
@@ -26,7 +28,6 @@ import Notifications from "./Notifications.jsx";
 import Profile from "./Profile.jsx";
 import Settings from "./Settings.jsx";
 import MyInterviews from "./MyInterviews.jsx";
-import LegalPage from "./LegalPage.jsx";
 
 // Interview Call
 import InterviewCall from "./InterviewCall.jsx";
@@ -41,6 +42,8 @@ import AdminMessages from "./admin/AdminMessages.jsx";
 
 export default function App() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
 
       {/* PUBLIC ROUTES */}
@@ -208,11 +211,9 @@ export default function App() {
 
       {/* UNKNOWN ROUTES */}
 
-      <Route
-        path="*"
-        element={<Navigate to="/" replace />}
-      />
+      <Route path="*" element={<NotFound />} />
 
     </Routes>
+    </>
   );
 }

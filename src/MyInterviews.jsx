@@ -1,7 +1,7 @@
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
 import InterviewSection from "./InterviewSection.jsx";
-import useMyInterviews from "./useMyInterviews.js";
+import useMyInterviews from "./UseMyInterviews.js";
 
 export default function MyInterviews() {
   const data = useMyInterviews();

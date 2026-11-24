@@ -1,5 +1,6 @@
 // Put this file in: src/api.js   (replaces the earlier api.js)
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8081";
+// const BASE = import.meta.env.VITE_API_URL || "http://localhost:8081";
+import { API_BASE as BASE } from "./Config.js";
 
 // fetch with the login token. Use this for every protected endpoint.
 export async function authFetch(path, options = {}) {

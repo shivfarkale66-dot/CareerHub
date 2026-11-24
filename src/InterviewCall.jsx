@@ -4,7 +4,7 @@
 // The Spring Boot backend only passes the small connection messages (CallController.java).
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { authFetch } from "./api.js";
+import { authFetch } from "./Api.js";
 
 // Free public STUN servers. For hosting on the internet add a TURN server too (see README).
 const ICE = {

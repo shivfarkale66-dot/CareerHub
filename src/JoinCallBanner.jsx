@@ -2,7 +2,7 @@
 // Shows a green "Join now" banner to the candidate when an interview call is open.
 // Use it at the top of Dashboard.jsx (below <UpcomingInterviewBanner ... />):  <JoinCallBanner />
 import { useEffect, useState } from "react";
-import { authFetch } from "./api.js";
+import { authFetch } from "./Api.js";
 import CallButton from "./CallButton.jsx";
 
 export default function JoinCallBanner() {

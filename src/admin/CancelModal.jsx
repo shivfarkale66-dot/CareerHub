@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import Modal, { inputCls, labelCls } from "./Modal.jsx";
-import { authJson } from "../authFetch.js";
+import { authJson } from "../Authfetch.js";
 
 export default function CancelModal({ interview, onClose, onSaved }) {
   const [reason, setReason] = useState("");

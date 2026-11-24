@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../Navbar.jsx";
 import Footer from "../Footer.jsx";
-import { authFetch } from "../api.js";
+import { authFetch } from "../Api.js";
 import CallButton from "../CallButton.jsx";
 
 const MIN = 60000;

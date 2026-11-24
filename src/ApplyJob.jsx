@@ -8,7 +8,8 @@ import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
 import { getLoggedInUser, hasApplied, addApplication, syncFromServer } from "./Storage.js";
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8081";
+// const BASE = import.meta.env.VITE_API_URL || "http://localhost:8081";
+import { API_BASE as BASE } from "./Config.js";
 
 const cityOptions = ["Bhopal", "Indore", "Mumbai", "Pune", "Delhi"];
 

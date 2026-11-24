@@ -3,7 +3,8 @@
 // so JobListing.jsx keeps its filters and pagination unchanged.
 import { useEffect, useState } from "react";
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8081";
+// const BASE = import.meta.env.VITE_API_URL || "http://localhost:8081";
+import { API_BASE as BASE } from "./Config.js";
 
 // Round logo colours (same look as before). Full class names so Tailwind can see them.
 const COLORS = [

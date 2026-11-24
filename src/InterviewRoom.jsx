@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
-import { authJson } from "./authFetch.js";
+// import { authJson } from "./AuthFetch.js";
+import  {authJson} from "./Authfetch.js";
 
 export default function InterviewRoom() {
   const { id } = useParams();

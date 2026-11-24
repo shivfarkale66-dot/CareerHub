@@ -10,9 +10,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
-import { cityOptions } from "./jobsCatalog.js";
-import useJobs from "./useJobs.js";
-import { getMyApplications } from "./api.js";
+import { cityOptions } from "./JobsCatalog.js";
+import useJobs from "./UseJobs.js";
+import { getMyApplications } from "./Api.js";
 import { getLoggedInUser, getSavedJobs, toggleSavedJob } from "./Storage.js";
 
 // Colours used on this page
